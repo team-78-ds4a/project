@@ -130,9 +130,8 @@ dmypy.json
 
 
 #Data
-.zip
-.pdf
-.xlsx
-.xls
-.csv
-.txt
+*.zip
+*.xlsx
+*.xls
+*.csv
+*.txt
