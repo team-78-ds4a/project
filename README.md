@@ -2,6 +2,18 @@
 Repository for project files
 
 
+## Organización
+K-2 INGENIERIA S.A.S.  
+www.k2ingenieria.com  
+
+## Contacto
+Raúl Fernando Castro Suárez  
+Gerente División Ingeniería  
+raul.castro@k2ingenieria.com  
++57 313 2181070  
++57 (7) 635 2870 Ext. 122  
+Carrera 36 # 36-26, Bucaramanga  
+
 ## Folder structure
 
 ├───code - scripts, Juýter notebooks, etc <br>
