@@ -20,10 +20,28 @@ cai = "CAI 20 de Julio"
 df_hora = pd.read_csv(r'data/df_group_hora.csv', encoding='utf_8',delimiter=';')
 df_dia = pd.read_csv(r'data/df_group_dia.csv', encoding='utf_8',delimiter=';')
 df_fecha = pd.read_csv(r'data/df_group_fecha.csv', encoding='utf_8',delimiter=';')
+DFP = pd.read_csv('data/df_lineasFecha.csv', dtype='unicode', encoding='utf_8',decimal='.')
 
 ##################################################
 # Graphs:
 ##################################################
+
+# Last 15 Days of Data
+
+DFP['Fecha']=DFP['Fecha'].apply(lambda x: pd.to_datetime(x,format='%Y-%m-%d  %H:%M:%S'))
+DFP['Valor_max']=pd.to_numeric(DFP['Valor_max'])
+DFP['Valor_mean']=pd.to_numeric(DFP['Valor_mean'])
+DFP['Valor_min']=pd.to_numeric(DFP['Valor_min'])
+
+#Estacion="any"
+if cai == "any":
+    DFP2=DFP.groupby(['Fecha','Variable']).mean().reset_index()
+    fig_15_days = px.line(DFP2, x="Fecha", y=["Valor_mean"],color ="Variable")
+
+else:
+    DFP2=DFP[DFP["Estación"]==cai]
+    fig_15_days = px.line(DFP2, x="Fecha", y=["Valor_mean"],color ="Variable")
+
 
 # Barras por Hora
 df_h = df_hora.copy()
@@ -386,7 +404,16 @@ tab_maps = dbc.Card(
 tab_time_series = dbc.Card(
     dbc.CardBody(
         [
-            html.P("Evolution of noise over time:", style=k2_tabs_info),
+            html.P("Noise for the last 15 Days", style=k2_tabs_info),
+            html.Hr(className="my-2"),
+            html.P("Below you can see the different measurements of Noise for the last 15 days of data. Each line represents one of the different measures of noise",
+                   className="card-text"),
+            html.Div(
+                [
+                    html.Div([dcc.Graph(figure=fig_15_days)]),
+                ], className='container'
+            ),
+            html.P("Evolution of Leq over time. Leq is the most common way to emasure noise:", style=k2_tabs_info),
             html.Hr(className="my-2"),
             html.P("Use the slider below the graph to select a time range. You can also use the buttons above the graph.",
                    className="card-text"),
