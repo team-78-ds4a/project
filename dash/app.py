@@ -9,7 +9,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+#PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 
 variable = 'Leq'
 medida = 'Valor_mean'
@@ -20,6 +20,57 @@ cai = "CAI 20 de Julio"
 df_hora = pd.read_csv(r'data/df_group_hora.csv', encoding='utf_8',delimiter=';')
 df_dia = pd.read_csv(r'data/df_group_dia.csv', encoding='utf_8',delimiter=';')
 df_fecha = pd.read_csv(r'data/df_group_fecha.csv', encoding='utf_8',delimiter=';')
+
+##################################################
+# Graphs:
+##################################################
+
+# Barras por Hora
+df_h = df_hora.copy()
+df = df_h.loc[df_h['Variable']=='Leq']
+dfa = df.groupby(['Hora','Variable']).mean().reset_index()
+dfa['Estación'] = 'Todas las estaciones'
+df = pd.concat([dfa[dfa.columns.to_list()],df])
+
+fig_bars_day = go.Figure()
+# set up ONE trace
+fig_bars_day.add_trace(go.Bar(x=df['Hora'],
+                              y=df['Valor_mean'].loc[df['Estación']=='Todas las estaciones'],
+                              visible=True)
+                       )
+
+updatemenu = []
+buttons = []
+di = {'range':[0,65]}
+fig_bars_day.layout.yaxis = di
+
+# button with one option for each dataframe
+for estacion in df['Estación'].unique():
+    buttons.append(dict(method='restyle',
+                        label=estacion,
+                        visible=True,
+                        args=[{'y':[df['Valor_mean'].loc[df['Estación']==estacion]],
+                               'x':[df['Hora']],
+                               'type':'bar',
+                               "yaxis": {'range':[0,65]},
+                              }, [0]],
+                        )
+                  )
+
+# some adjustments to the updatemenus
+updatemenu = []
+your_menu = dict()
+updatemenu.append(your_menu)
+
+updatemenu[0]['buttons'] = buttons
+updatemenu[0]['direction'] = 'down'
+updatemenu[0]['showactive'] = True
+
+# add dropdown menus to the figure
+fig_bars_day.update_layout(showlegend=False, updatemenus=updatemenu)
+
+fig_bars_day.update_layout( xaxis_title='Hora del día',
+                            yaxis_title='Ruido promedio')
 
 # Serie de tiempo
 
@@ -81,9 +132,9 @@ fig_map_day = px.density_mapbox(df_dia[df_dia['Variable']== variable], lat='lati
                         ,color_continuous_midpoint =50
                        )
 fig_map_day.update_layout(mapbox_style="stamen-toner"
-                  ,mapbox_zoom=10
-                  , mapbox_center = {"lat": 4.60971, "lon": -74.08175}
-                 )
+                          ,mapbox_zoom=10
+                          , mapbox_center = {"lat": 4.60971, "lon": -74.08175}
+                          )
 fig_map_day.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 
 # Styles to be applied to the page
@@ -98,7 +149,9 @@ k2_gen_info = {
 k2_title = {
     'font-size': '1.5rem',
     'padding-top': '1rem',
+    'color':"#4b73d4ff"
 }
+
 k2_profile = {
     'font-size': '0.8rem'
 }
@@ -321,7 +374,7 @@ tab_maps = dbc.Card(
                 "Use the sliders to explore how the average noise changes during the day in Bogotá. You can Zoom-In and Zoom-out ",
                 className="card-text"),
             html.Hr(className="my-2"),
-            html.Div([dcc.Graph(figure=fig_day_series)]),
+            html.Div([dcc.Graph(figure=fig_map_day)]),
 
             #html.P("This is a tab!", className="card-text"),
             #dbc.Button("Click here", color="secondary"),
@@ -335,19 +388,29 @@ tab_time_series = dbc.Card(
         [
             html.P("Evolution of noise over time:", style=k2_tabs_info),
             html.Hr(className="my-2"),
-            html.P("There are different sensors located in the City. Used the dropdown to select a sensor of interest.", className="card-text"),
+            html.P("Use the slider below the graph to select a time range. You can also use the buttons above the graph.",
+                   className="card-text"),
             html.Div(
                 [
-                    dcc.Dropdown(
-                        id='cai-dropdown',
-                        options=[
-                            {'label': 'New York City', 'value': 'NYC'},
-                            {'label': 'Montreal', 'value': 'MTL'},
-                            {'label': 'San Francisco', 'value': 'SF'}
-                        ],
-                        value='NYC'
-                    ),
+                    # dcc.Dropdown(
+                    #     id='cai-dropdown',
+                    #     options=[
+                    #         {'label': 'New York City', 'value': 'NYC'},
+                    #         {'label': 'Montreal', 'value': 'MTL'},
+                    #         {'label': 'San Francisco', 'value': 'SF'}
+                    #     ],
+                    #     value='NYC'
+                    # ),
                     html.Div([dcc.Graph(figure=fig_day_series)]),
+                ], className='container'
+            ),
+            html.P("Distribution of noise during the day for each station:", style=k2_tabs_info),
+            html.Hr(className="my-2"),
+            html.P("There are different sensors located in the City. Use the dropdown to select a sensor of interest.",
+                   className="card-text"),
+            html.Div(
+                [
+                    html.Div([dcc.Graph(figure=fig_bars_day)]),
                 ], className='container'
             ),
             #html.P("This is a tab!", className="card-text"),
@@ -372,7 +435,7 @@ tab_predictions = dbc.Card(
 tabs = dbc.Tabs(
     [
         dbc.Tab(tab_maps, label="Maps"),
-        dbc.Tab(tab_time_series, label="Time series"),
+        dbc.Tab(tab_time_series, label="Time series analysis"),
         dbc.Tab(tab_predictions, label="Predictions"),
     ]
 )
