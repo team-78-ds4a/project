@@ -139,3 +139,5 @@ dmypy.json
 dash/Bar_chart_plotly.ipynb
 *.ini
 *.geojson
+dash/15dFechaHora.ipynb
+dash/Bar_chart_plotly_1.ipynb
