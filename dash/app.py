@@ -50,30 +50,55 @@ dfa = df.groupby(['Hora','Variable']).mean().reset_index()
 dfa['Estación'] = 'Todas las estaciones'
 df = pd.concat([dfa[dfa.columns.to_list()],df])
 
+# # plotly
 fig_bars_day = go.Figure()
+
 # set up ONE trace
 fig_bars_day.add_trace(go.Bar(x=df['Hora'],
-                              y=df['Valor_mean'].loc[df['Estación']=='Todas las estaciones'],
-                              visible=True)
-                       )
+                     y=df['Valor_mean'].loc[df['Estación'] == 'Todas las estaciones'],
+                     # title = 'dfa',
+                     visible=True)
+              )
 
 updatemenu = []
+# b0 = dict(method='restyle',label='Todas las estaciones',visible=True)
 buttons = []
-di = {'range':[0,65]}
-fig_bars_day.layout.yaxis = di
+diy = {"title": "Noise Level Leq [db]", 'range': [0, 65]}
+fig_bars_day.layout.yaxis = diy
+dix = {"title": "Hour"}
+fig_bars_day.layout.xaxis = dix
+dia = {'text': 'test'}
+
+# Step 1 - adjust margins to make room for the text
+fig_bars_day.update_layout(margin=dict(t=150))
+
+# Step 3 - add text with xref set to x
+# and yref set to 'paper' which will let you set
+# text outside the plot itself by specifying y > 1
+fig_bars_day.add_annotation(dict(font=dict(color="black", size=13),
+                        # x=x_loc,
+                        x='a',
+                        y=1.08,
+                        showarrow=False,
+                        text='Select station of interest',
+                        textangle=0,
+                        xref="paper",
+                        yref="paper"
+                        ))
 
 # button with one option for each dataframe
 for estacion in df['Estación'].unique():
-    buttons.append(dict(method='restyle',
+    buttons.append(dict(method='update',
                         label=estacion,
                         visible=True,
-                        args=[{'y':[df['Valor_mean'].loc[df['Estación']==estacion]],
-                               'x':[df['Hora']],
-                               'type':'bar',
-                               "yaxis": {'range':[0,65]},
-                              }, [0]],
+                        args=[{'y': [df['Valor_mean'].loc[df['Estación'] == estacion]],
+                               'x': [df['Hora']],
+                               'type': 'bar'},
+                              {"xaxis": dix,
+                               "yaxis": diy}, [0]],
+
                         )
-                  )
+                   )
 
 # some adjustments to the updatemenus
 updatemenu = []
@@ -85,15 +110,13 @@ updatemenu[0]['direction'] = 'down'
 updatemenu[0]['showactive'] = True
 
 # add dropdown menus to the figure
-fig_bars_day.update_layout(showlegend=False, updatemenus=updatemenu)
-
-fig_bars_day.update_layout( xaxis_title='Hora del día',
-                            yaxis_title='Ruido promedio')
+fig_bars_day.update_layout(showlegend=False, updatemenus=updatemenu,
+                           #title_text='Noise level for stations throughout the day'
+                           )
 
 # Serie de tiempo
 
 df_cai = df_fecha[(df_fecha.Estación == cai)]
-
 
 fig_day_series = go.Figure()
 fig_day_series.add_trace(go.Scatter(x=df_cai["Fecha_Dia"],
